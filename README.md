@@ -1,0 +1,1 @@
+# Convert loga files to datev accounting files for importing in SAP

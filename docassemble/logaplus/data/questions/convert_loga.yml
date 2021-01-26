@@ -1,0 +1,72 @@
+metadata:
+  title: Convert LOGA to SAP
+  short title: Admin
+  description: |
+    Konvertiert den LOGA Export in ein von SAP lesbares Format.
+  documentation: "https://docassemble.org/docs/fields.html#file"
+  required privileges:
+    - admin
+    - Mitarbeiter
+---
+mandatory: True
+code: |
+  if user_has_privilege(['Mitarbeiter','admin']):
+    is_mitarbeiter = True
+  else:
+    not_mitarbeiter
+---
+if: is_mitarbeiter
+question: |
+  Bitte die LOGA-Datei angeben.
+fields:
+  - "Loga Datei": user_picture
+    datatype: file
+---
+imports:
+  - random
+---
+modules:
+  - .convert_loga
+---
+mandatory: True
+need:
+  - user_picture
+code: |
+  import pandas as pd
+  from openpyxl import load_workbook
+  import numpy as np
+  from io import StringIO
+  import re
+  import chardet
+  user_picture_url = user_picture.url_for()
+  user_pd = read_loga(user_picture)
+---
+mandatory: True
+code: |
+  if user_pd['error_code']==0:
+    end_success
+  else:
+    end_error
+---
+question: |
+  Erfolgreich umgewandelt.
+subquestion: |
+      - Sie haben die Lohndatei für ${ user_pd['date'].strftime("%d %B, %Y") } *konvertiert*.
+      - Nachfolgende Tabelle zeigt die Haben und Sollsalden. Falls diese abweichen ist Vorsicht geboten!
+      ${ user_pd['test'].to_html() }
+      - Laden Sie bitte die Datei: ${ user_pd['file'] } herunter. 
+      - Importieren Sie diese in SAP. 
+      - Die Quelldatei und diese Datei sollten im DMS abgelegt werden.
+
+event: end_success
+---
+question: |
+  Es ist ein Fehler aufgetreten!
+subquestion: Prüfen Sie, ob es sich wirklich um eine LOGA-Datei handelt?.
+event: end_error
+---
+question: |
+  Es ist ein Fehler aufgetreten!
+subquestion: Nur Mitarbeiter dürfen dieses Interview durchführen.
+event: not_mitarbeiter
+---
